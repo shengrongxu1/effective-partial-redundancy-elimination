@@ -26,27 +26,25 @@
 
 using namespace llvm;
 namespace{
-	struct PRE: public PassInfoMixin<PRE> {
+	struct PRE: public FunctionPass{
         static char ID;
         //FOR legacy LLVM
-		// PRE() : FunctionPass(ID) {
-        // }
-        // virtual bool runOnFunction(Function &F) override{
-        //     FunctionPassManager fpm;
-        //     fpm.addPass(ReassociatePass());
-        //     fpm.run
-        // }
-        //For LLVM 4.0
-        PreservedAnalyses run(Function &F, FunctionAnalysisManager &FAM) {
-            
-            FunctionPassManager function_pass_manager;
-
-
-            function_pass_manager.addPass(ReassociatePass());
-            function_pass_manager.run(F, FAM);
-
-            return PreservedAnalyses::none();
+		PRE() : FunctionPass(ID) {
         }
+        virtual bool runOnFunction(Function &F) override{
+            return false;
+        }
+        //For LLVM 4.0
+        // PreservedAnalyses run(Function &F, FunctionAnalysisManager &FAM) {
+            
+        //     FunctionPassManager function_pass_manager;
+
+
+        //     function_pass_manager.addPass(ReassociatePass());
+        //     function_pass_manager.run(F, FAM);
+
+        //     return PreservedAnalyses::none();
+        // }
 
     };
 }
