@@ -45,6 +45,11 @@ namespace{
 
         //     return PreservedAnalyses::none();
         // }
+        void assignRank(Function &F) {
+            for (auto &BB : F) {
+
+            }
+        }
 
     };
 }
