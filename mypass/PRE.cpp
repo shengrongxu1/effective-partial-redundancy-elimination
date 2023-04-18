@@ -13,6 +13,7 @@
 #include "llvm/IR/Dominators.h"
 #include "llvm/Transforms/Utils.h"
 #include "llvm/Transforms/Utils/PromoteMemToReg.h"
+#include "llvm/Transforms/Utils/SSAUpdater.h"
 // LCM
 //  Optimal Computation Points
 // 1. Safe-Earliest Transformation: insert h = t at every entry of node n satisfying DSafe & Earliest and replace each t by h
@@ -37,10 +38,16 @@ namespace{
         virtual bool runOnFunction(Function &F) override{
             // DominatorTree DT = DominatorTree(F);
             // PromoteMemToReg(F.getParent()->getDataLayout()).runOnFunction(F);
-           
-            return false;
 
         }
+
+
+        // Assume that 'F' is a pointer to the function for which you want to construct
+        // the SSA form with phi nodes.
+        
+        // This function takes a pointer to a function and converts it to SSA form with phi nodes.
+
+
         //For LLVM 4.0
         // PreservedAnalyses run(Function &F, FunctionAnalysisManager &FAM) {
             
@@ -52,6 +59,31 @@ namespace{
 
         //     return PreservedAnalyses::none();
         // }
+        std::vector<BasicBlock*> getFrequentPath(Function *F) {
+            BranchProbabilityInfo &bpi = getAnalysis<BranchProbabilityInfoWrapperPass>().getBPI();
+            
+            // Find the entry block
+            BasicBlock* entryBB = &F->getEntryBlock();
+            std::vector<BasicBlock *> frequentPath;
+            BasicBlock *BB = entryBB;
+            while (true){
+                BasicBlock *next = nullptr;
+                for (succ_iterator PI = succ_begin(BB); PI != succ_end(BB); ++PI) {
+                    next = *PI;
+                    BranchProbability currProInfo = bpi.getEdgeProbability(BB, next);
+                    float currPro = (float)currProInfo.getNumerator()/(float)currProInfo.getDenominator();
+                    if (currPro >= 0.8){
+                        break;
+                    }
+                }
+                frequentPath.push_back(next);
+                if (next == entryBB){
+                    break;
+                }
+                BB = next;
+            }
+            return frequentPath;
+        }
 
     };
 }
