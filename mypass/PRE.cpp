@@ -10,6 +10,9 @@
 #include <llvm/Transforms/Utils.h>
 #include <llvm/Analysis/LoopAnalysisManager.h>
 #include <llvm/Passes/PassBuilder.h>
+#include "llvm/IR/Dominators.h"
+#include "llvm/Transforms/Utils.h"
+#include "llvm/Transforms/Utils/PromoteMemToReg.h"
 // LCM
 //  Optimal Computation Points
 // 1. Safe-Earliest Transformation: insert h = t at every entry of node n satisfying DSafe & Earliest and replace each t by h
@@ -32,8 +35,11 @@ namespace{
 		PRE() : FunctionPass(ID) {
         }
         virtual bool runOnFunction(Function &F) override{
+            // DominatorTree DT = DominatorTree(F);
+            // PromoteMemToReg(F.getParent()->getDataLayout()).runOnFunction(F);
+           
             return false;
-            
+
         }
         //For LLVM 4.0
         // PreservedAnalyses run(Function &F, FunctionAnalysisManager &FAM) {
