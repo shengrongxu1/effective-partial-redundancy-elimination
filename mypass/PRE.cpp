@@ -14,6 +14,7 @@
 #include "llvm/Transforms/Utils.h"
 #include "llvm/Transforms/Utils/PromoteMemToReg.h"
 #include "llvm/Transforms/Utils/SSAUpdater.h"
+#include <unordered_map>
 // LCM
 //  Optimal Computation Points
 // 1. Safe-Earliest Transformation: insert h = t at every entry of node n satisfying DSafe & Earliest and replace each t by h
@@ -29,6 +30,7 @@
 // (4) Isolated & Latest --> OCP; RO --> insert h = t at every entry of node n in OCP and replace each t by h in RO.
 
 using namespace llvm;
+using namespace std;
 namespace{
 	struct PRE: public FunctionPass{
         static char ID;
@@ -84,7 +86,59 @@ namespace{
             }
             return frequentPath;
         }
+        std::unordered_map<llvm::Value*,int> rankMap;
+        void assignRank(Function &F) {
+            for (auto &BB : F) {
+                for (auto &I : BB){
+                    if (llvm::StoreInst *SI = &llvm::dyn_cast<llvm::StoreInst>(I)){
+                        llvm::Value *op_SI = SI->getOperand(1);
+                        if (llvm::Constant *CI = &llvm::dyn_cast<llvm::Constant>(*op_SI)){
+                            rankMap[SI->getOperand(0)] = 0;
+                        }
+                    
+                    }
+                    else if (llvm::BinaryOpIntrinsic *BI = &llvm::dyn_cast<llvm::BinaryOpIntrinsic>(I)){
+                        llvm::Value *op_SI_l = BI->getOperand(1);
+                        llvm::Value *op_SI_r = BI->getOperand(2);
+                        rankMap[BI->getOperand(0)] = max(rankMap[op_SI_l],rankMap[op_SI_r]);
 
+                    }
+
+                }
+            }
+        }
+
+        //
+        // Rank Computing
+        //
+        // Forward Propagation
+        //  (1) Remove each Phi node x = Phi(y, z) by inserting the copies x = y and x = z
+        //  (2) Trace from each copy back along the SSA graph (new blocks required) to construct expression trees
+        //  (3) Check the uses and push expressions
+        bool forwardProp(Function &F) {
+            // // Create a map to store the uses of Phi nodes
+            // std::map<PHINode *, std::vector<User *>> PhiUsesMap;
+            // // Position of Phi nodes
+            // int numOfBB = 0;
+            // // !!! Assuming we have all the Phi nodes in the pruned SSA form here
+            // // Traverse the function's basic blocks
+            // for (BasicBlock &BB : F) {
+            //     numOfBB++;
+            //     // Traverse the instructions in the basic block
+            //     for (Instruction &I : instructions(BB)) {
+            //         // check if the instruction is a phi node, store positions and all uses of phi nodes
+            //         if (auto *phi = dyn_cast<PHINode>(&I)) {
+            //             // get the uses of Phi nodes
+            //             for (auto op = phi->op_begin(); op != phi->op_end(); ++op) {
+            //                 User *U = op->get();
+            //                 PhiUsesMap[phi].push_back(U);
+            //             }
+            //         }
+            //     }
+            // }
+            //
+            return true;
+        }
     };
 }
 char PRE::ID = 0;
