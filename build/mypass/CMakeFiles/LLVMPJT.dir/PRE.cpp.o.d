@@ -414,4 +414,12 @@ mypass/CMakeFiles/LLVMPJT.dir/PRE.cpp.o: \
  /usr/local/include/llvm/Support/MemoryBuffer.h \
  /usr/local/include/llvm/Support/MemoryBufferRef.h \
  /usr/local/include/llvm/Support/SMLoc.h \
- /usr/local/include/llvm/Transforms/Utils/ValueMapper.h
+ /usr/local/include/llvm/Transforms/Utils/ValueMapper.h \
+ /usr/local/include/llvm/IR/Dominators.h \
+ /usr/local/include/llvm/ADT/DepthFirstIterator.h \
+ /usr/local/include/llvm/Support/CFGDiff.h \
+ /usr/local/include/llvm/Support/CFGUpdate.h \
+ /usr/local/include/llvm/Support/GenericDomTree.h \
+ /usr/local/include/llvm/Support/GenericDomTreeConstruction.h \
+ /usr/include/c++/11/queue /usr/include/c++/11/bits/stl_queue.h \
+ /usr/local/include/llvm/Transforms/Utils/PromoteMemToReg.h
