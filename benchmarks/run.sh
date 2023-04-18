@@ -56,4 +56,4 @@ clang ${1}.fplicm.bc -o ${1}_fplicm
 
 
 # Cleanup: Remove this if you want to retain the created files.
-rm -f default.profraw *_prof *_fplicm *.profdata *_output *.ll
+rm -f default.profraw *_prof *_fplicm *.profdata *_output*
