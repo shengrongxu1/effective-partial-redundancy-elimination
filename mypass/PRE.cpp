@@ -56,6 +56,10 @@ namespace
                 key->print(llvm::errs(), false); // Set the second parameter to true if you want to print the type as well
                 llvm::errs() << " -> " << value << "\n";
             }
+
+            for (auto &BB : F) {
+                errs() << BB << "\n";
+            }
             return false;
         }
 
@@ -132,24 +136,27 @@ namespace
                     if (llvm::isa<llvm::StoreInst>(I))
                     {
                         llvm::StoreInst *SI = llvm::cast<llvm::StoreInst>(&I);
-                        llvm::Value *op_SI = SI->getOperand(1);
+                        llvm::Value *op_SI = SI->getOperand(0);
                         if (llvm::isa<llvm::Constant>(*op_SI))
                         {
                             llvm::Constant *CI = llvm::cast<llvm::Constant>(op_SI);
-                            rankMap[SI->getOperand(0)] = 0;
+                            llvm::Value *Dst = SI; 
+                            rankMap[Dst] = 0;
                         }
                     }
                     else if (llvm::isa<llvm::PHINode>(I))
                     {
                         llvm::PHINode *PHI = llvm::cast<llvm::PHINode>(&I);
-                        rankMap[PHI->getOperand(0)] = bb_num;
+                        llvm::Value *Dst = PHI;
+                        rankMap[Dst] = bb_num;
                     }
                     else if (llvm::isa<llvm::BinaryOperator>(I))
                     {
                         llvm::BinaryOperator *BI = llvm::cast<llvm::BinaryOperator>(&I);
                         llvm::Value *op_SI_l = BI->getOperand(0);
                         llvm::Value *op_SI_r = BI->getOperand(1);
-                        rankMap[BI->getOperand(0)] = std::max(rankMap[op_SI_l], rankMap[op_SI_r]);
+                        llvm::Value *Dst = BI;
+                        rankMap[Dst] = std::max(rankMap[op_SI_l], rankMap[op_SI_r]);
                     }
                 }
                 bb_num += 1;
