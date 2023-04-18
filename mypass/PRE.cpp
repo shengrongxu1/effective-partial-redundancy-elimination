@@ -53,6 +53,17 @@ namespace{
         //     return PreservedAnalyses::none();
         // }
 
+        //
+        // Rank Computing
+        //
+        // Forward Propagation
+        //  (1) Remove each Phi node x = Phi(y, z) by inserting the copies x = y and x = z
+        //  (2) Trace from each copy back along the SSA graph (new blocks required) to construct expression trees
+        //  (3) Check the uses and push expressions
+        bool forwardProp(Function &F) override {
+            // 
+            return true;
+        }
     };
 }
 char PRE::ID = 0;
