@@ -61,7 +61,27 @@ namespace{
         //  (2) Trace from each copy back along the SSA graph (new blocks required) to construct expression trees
         //  (3) Check the uses and push expressions
         bool forwardProp(Function &F) override {
-            // 
+            // // Create a map to store the uses of Phi nodes
+            // std::map<PHINode *, std::vector<User *>> PhiUsesMap;
+            // // Position of Phi nodes
+            // int numOfBB = 0;
+            // // !!! Assuming we have all the Phi nodes in the pruned SSA form here
+            // // Traverse the function's basic blocks
+            // for (BasicBlock &BB : F) {
+            //     numOfBB++;
+            //     // Traverse the instructions in the basic block
+            //     for (Instruction &I : instructions(BB)) {
+            //         // check if the instruction is a phi node, store positions and all uses of phi nodes
+            //         if (auto *phi = dyn_cast<PHINode>(&I)) {
+            //             // get the uses of Phi nodes
+            //             for (auto op = phi->op_begin(); op != phi->op_end(); ++op) {
+            //                 User *U = op->get();
+            //                 PhiUsesMap[phi].push_back(U);
+            //             }
+            //         }
+            //     }
+            // }
+            //
             return true;
         }
     };
