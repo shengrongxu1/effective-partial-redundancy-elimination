@@ -13,6 +13,7 @@
 #include "llvm/IR/Dominators.h"
 #include "llvm/Transforms/Utils.h"
 #include "llvm/Transforms/Utils/PromoteMemToReg.h"
+#include <unordered_map>
 // LCM
 //  Optimal Computation Points
 // 1. Safe-Earliest Transformation: insert h = t at every entry of node n satisfying DSafe & Earliest and replace each t by h
@@ -28,6 +29,7 @@
 // (4) Isolated & Latest --> OCP; RO --> insert h = t at every entry of node n in OCP and replace each t by h in RO.
 
 using namespace llvm;
+using namespace std;
 namespace{
 	struct PRE: public FunctionPass{
         static char ID;
@@ -52,9 +54,25 @@ namespace{
 
         //     return PreservedAnalyses::none();
         // }
+        std::unordered_map<llvm::Value*,int> rankMap;
         void assignRank(Function &F) {
             for (auto &BB : F) {
+                for (auto &I : BB){
+                    if (llvm::StoreInst *SI = &llvm::dyn_cast<llvm::StoreInst>(I)){
+                        llvm::Value *op_SI = SI->getOperand(1);
+                        if (llvm::Constant *CI = &llvm::dyn_cast<llvm::Constant>(*op_SI)){
+                            rankMap[SI->getOperand(0)] = 0;
+                        }
+                    
+                    }
+                    else if (llvm::BinaryOpIntrinsic *BI = &llvm::dyn_cast<llvm::BinaryOpIntrinsic>(I)){
+                        llvm::Value *op_SI_l = BI->getOperand(1);
+                        llvm::Value *op_SI_r = BI->getOperand(2);
+                        rankMap[BI->getOperand(0)] = max(rankMap[op_SI_l],rankMap[op_SI_r]);
 
+                    }
+
+                }
             }
         }
 
