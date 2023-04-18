@@ -83,7 +83,7 @@ namespace{
         //  (1) Remove each Phi node x = Phi(y, z) by inserting the copies x = y and x = z
         //  (2) Trace from each copy back along the SSA graph (new blocks required) to construct expression trees
         //  (3) Check the uses and push expressions
-        bool forwardProp(Function &F) override {
+        bool forwardProp(Function &F) {
             // // Create a map to store the uses of Phi nodes
             // std::map<PHINode *, std::vector<User *>> PhiUsesMap;
             // // Position of Phi nodes
