@@ -33,6 +33,7 @@ clang -fprofile-instr-generate ${1}.ls.prof.bc -o ${1}_prof
 clang -S -c -Xclang -disable-O0-optnone -fno-discard-value-names -emit-llvm ${1}.c -o ${1}.ll
 opt -mem2reg ${1}.ll -o ${1}_opt.ll
 llvm-dis ${1}_opt.ll -o ${1}_opt_dis.ll
+llvm-as ${1}_opt_dis.ll -o ${1}_opt_dis.bc
 
 # When we run the profiler embedded executable, it generates a default.profraw file that contains the profile data.
 ./${1}_prof > correct_output
@@ -45,12 +46,12 @@ llvm-profdata merge -o ${1}.profdata default.profraw
 opt -passes="pgo-instr-use" -o ${1}.profdata.bc -pgo-test-profile-file=${1}.profdata < ${1}.ls.prof.bc > /dev/null
 
 # We now use the profile augmented bc file as input to your pass.
-opt -enable-new-pm=0 -o ${1}.fplicm.bc -load ${PATH2LIB} ${PASS} < ${1}.profdata.bc > /dev/null
+opt -enable-new-pm=0 -o ${1}_opt_dis.bc -load ${PATH2LIB} ${PASS} < ${1}.profdata.bc > /dev/null
 
 # Generate binary excutable before FPLICM: Unoptimzied code
 clang ${1}.ls.bc -o ${1}_no_fplicm 
 # Generate binary executable after FPLICM: Optimized code
-clang ${1}.fplicm.bc -o ${1}_fplicm
+clang ${1}.fplicm.bc -o ${1}_fplicm 
 
 # Produce output from binary to check correctness
 
