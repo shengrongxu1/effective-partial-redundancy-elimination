@@ -34,7 +34,6 @@ clang -S -c -Xclang -disable-O0-optnone -fno-discard-value-names -emit-llvm ${1}
 opt -mem2reg ${1}.ll -o ${1}_opt.ll
 llvm-dis ${1}_opt.ll -o ${1}_opt_dis.ll
 llvm-as ${1}_opt_dis.ll -o ${1}_opt_dis.bc
-
 # When we run the profiler embedded executable, it generates a default.profraw file that contains the profile data.
 ./${1}_prof > correct_output
 
@@ -57,4 +56,4 @@ clang ${1}.fplicm.bc -o ${1}_fplicm
 
 
 # Cleanup: Remove this if you want to retain the created files.
-rm -f default.profraw *_prof *_fplicm *.profdata *_output *.ll
+rm -f default.profraw *_prof *_fplicm *.profdata *_output*
