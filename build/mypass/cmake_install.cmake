@@ -1,4 +1,4 @@
-# Install script for directory: /n/eecs583b/home/shengrx/Final_Project/effective-partial-redundancy-elimination/mypass
+# Install script for directory: /n/eecs583a/home/zhifanx/effective-partial-redundancy-elimination/mypass
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -43,7 +43,7 @@ if(NOT DEFINED CMAKE_OBJDUMP)
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xLLVMPJTx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" TYPE MODULE FILES "/n/eecs583b/home/shengrx/Final_Project/effective-partial-redundancy-elimination/build/mypass/LLVMPJT.so")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" TYPE MODULE FILES "/n/eecs583a/home/zhifanx/effective-partial-redundancy-elimination/build/mypass/LLVMPJT.so")
   if(EXISTS "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/LLVMPJT.so" AND
      NOT IS_SYMLINK "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/LLVMPJT.so")
     if(CMAKE_INSTALL_DO_STRIP)
