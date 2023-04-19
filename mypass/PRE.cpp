@@ -14,7 +14,10 @@
 #include "llvm/Transforms/Utils.h"
 #include "llvm/Transforms/Utils/PromoteMemToReg.h"
 #include "llvm/Transforms/Utils/SSAUpdater.h"
+#include "llvm/Transforms/Utils/BasicBlockUtils.h"
 #include <unordered_map>
+#include <vector>
+#include <algorithm>
 // LCM
 //  Optimal Computation Points
 // 1. Safe-Earliest Transformation: insert h = t at every entry of node n satisfying DSafe & Earliest and replace each t by h
@@ -172,21 +175,34 @@ namespace
         //  (3) Check the uses and push expressions
         bool forwardProp(Function &F) {
             // Create a map to store the uses of Phi nodes
-            std::map<PHINode *, int> PhiNums;
+            std::map<int, std::vector<PHINode *>> PhiNums;
+            std::map<int, std::vector<BasicBlock *>> PhiSuccBBs;
+            std::map<int, std::vector<BasicBlock *>> PhiAlongPathPredBBs;
+            std::map<int, std::vector<BasicBlock *>> PhiOtherPathPredBBs;
             std::map<PHINode *, std::vector<Value *>> PhiUsesMap; // values of phi nodes? Not sure.
+            std::map<int, std::vector<BasicBlock *>> InsertedBBs;
             // Position of Phi nodes
             int numOfBB = 0;
             // Assuming we have all the Phi nodes in the pruned SSA form here
             // Traverse the function's basic blocks
-            for (auto &BB : F) {
+            for (BasicBlock &BB : F) {
                 numOfBB++;
                 // Traverse the instructions in the basic block
-                for (auto &I : BB) {
+                for (Instruction &I : BB) {
                     // check if the instruction is a phi node, store positions and all uses of phi nodes
                     if (auto *phi = dyn_cast<PHINode>(&I)) {
-                        // store the number of succBB 
-                        PhiNums[phi] = numOfBB;
-                        // get the uses of Phi nodes
+                        // store the Phi node at the number of succBB 
+                        PhiNums[numOfBB].push_back(phi);
+                        // store information of Preds & Succ for Splitedge
+                        if (std::find(PhiSuccBBs[numOfBB].begin(), PhiSuccBBs[numOfBB].end(), &BB) == PhiSuccBBs[numOfBB].end()) {
+                            PhiSuccBBs[numOfBB].push_back(&BB);
+                            // Get pred BBs on two paths
+                            for (BasicBlock *Pred : predecessors(&BB)) {
+                                if (PhiAlongPathPredBBs[numOfBB].empty()) {PhiAlongPathPredBBs[numOfBB].push_back(Pred);}
+                                else {PhiOtherPathPredBBs[numOfBB].push_back(Pred);}
+                            }
+                        }
+                            // get the uses of Phi nodes
                         for (auto op = phi->op_begin(); op != phi->op_end(); ++op) {
                             Value *U = op->get();
                             PhiUsesMap[phi].push_back(U);
@@ -194,7 +210,19 @@ namespace
                     }
                 }
             }
-            // Convert phi nodes and create new BBs
+            //
+            // Create new BBs
+            for (auto iv = PhiNums.begin(); iv != PhiNums.end(); ++iv) {
+                // iterating over Phi nodes (vectors)
+                for (auto it = iv->second.begin(); it != iv->second.end(); ++it) {
+                    // splitEdge at numOfBB (iv->first)
+                    // insert two BBs from two Preds to Succ
+                    InsertedBBs[iv->first].push_back(SplitEdge(PhiAlongPathPredBBs[iv->first].front(), PhiSuccBBs[iv->first].front()));
+                    InsertedBBs[iv->first].push_back(SplitEdge(PhiOtherPathPredBBs[iv->first].front(), PhiSuccBBs[iv->first].front()));
+                }
+            }
+            // Convert phi nodes in the new BBs
+            // ......
             return true;
         }
     };
