@@ -3,9 +3,16 @@
 #include "llvm/Analysis/BlockFrequencyInfo.h"
 #include "llvm/Analysis/BranchProbabilityInfo.h"
 #include "llvm/Support/Format.h"
+#include "llvm/IR/IRBuilder.h"
+#include "llvm/IR/LLVMContext.h"
+#include "llvm/IR/Module.h"
+#include "llvm/IR/Type.h"
+#include "llvm/IR/BasicBlock.h"
+#include "llvm/IR/Instructions.h"
 #include "llvm/IR/InstIterator.h"
 #include <llvm/IR/Function.h>
 #include <llvm/IR/PassManager.h>
+#include "llvm/IR/IRBuilder.h"
 #include <llvm/Transforms/Scalar/Reassociate.h>
 #include <llvm/Transforms/Utils.h>
 #include <llvm/Analysis/LoopAnalysisManager.h>
@@ -59,7 +66,10 @@ namespace
                 key->print(llvm::errs(), false); // Set the second parameter to true if you want to print the type as well
                 llvm::errs() << " -> " << value << "\n";
             }
-
+            // -------------------------------------------------------------------------
+            // forwardProp testing
+            forwardProp(F);
+            // print BBs
             for (auto &BB : F) {
                 errs() << BB << "\n";
             }
@@ -165,9 +175,8 @@ namespace
                 bb_num += 1;
             }
         }
-
         //
-        // Rank Computing
+        // Rank Computing Done here
         //
         // Forward Propagation
         //  (1) Remove each Phi node x = Phi(y, z) by inserting the copies x = y and x = z
@@ -179,14 +188,16 @@ namespace
             std::map<int, std::vector<BasicBlock *>> PhiSuccBBs;
             std::map<int, std::vector<BasicBlock *>> PhiAlongPathPredBBs;
             std::map<int, std::vector<BasicBlock *>> PhiOtherPathPredBBs;
-            std::map<PHINode *, std::vector<Value *>> PhiUsesMap; // values of phi nodes? Not sure.
+            std::map<PHINode *, std::vector<Value *>> PhiUsesMap; // values of phi nodes?
             std::map<int, std::vector<BasicBlock *>> InsertedBBs;
             // Position of Phi nodes
             int numOfBB = 0;
-            // Assuming we have all the Phi nodes in the pruned SSA form here
-            // Traverse the function's basic blocks
+            // Assuming we have all the Phi nodes in the pruned SSA form
+            // -------------------------------------------------------------------------------
+            // Get information
             for (BasicBlock &BB : F) {
                 numOfBB++;
+                errs() << "number of BB: " << numOfBB << "\n";
                 // Traverse the instructions in the basic block
                 for (Instruction &I : BB) {
                     // check if the instruction is a phi node, store positions and all uses of phi nodes
@@ -194,35 +205,109 @@ namespace
                         // store the Phi node at the number of succBB 
                         PhiNums[numOfBB].push_back(phi);
                         // store information of Preds & Succ for Splitedge
+                        errs() << "store the Phi node at the number of succBB" << "\n";
+                        // check entry & exit nodes
                         if (std::find(PhiSuccBBs[numOfBB].begin(), PhiSuccBBs[numOfBB].end(), &BB) == PhiSuccBBs[numOfBB].end()) {
+                            //
                             PhiSuccBBs[numOfBB].push_back(&BB);
+                            errs() << "add BB to SuccBBs" << "\n";
                             // Get pred BBs on two paths
                             for (BasicBlock *Pred : predecessors(&BB)) {
-                                if (PhiAlongPathPredBBs[numOfBB].empty()) {PhiAlongPathPredBBs[numOfBB].push_back(Pred);}
-                                else {PhiOtherPathPredBBs[numOfBB].push_back(Pred);}
+                                if (PhiAlongPathPredBBs[numOfBB].empty()) {
+                                    PhiAlongPathPredBBs[numOfBB].push_back(Pred);
+                                    errs() << "add BB to AlongPathPredBBs" << "\n";
+                                }
+                                else {
+                                    PhiOtherPathPredBBs[numOfBB].push_back(Pred);
+                                    errs() << "add BB to OtherPathPredBBs" << "\n";
+                                }
                             }
                         }
-                            // get the uses of Phi nodes
+                        // get the uses of Phi nodes
                         for (auto op = phi->op_begin(); op != phi->op_end(); ++op) {
                             Value *U = op->get();
                             PhiUsesMap[phi].push_back(U);
                         }
                     }
                 }
+            }\
+            // -------------------------------------------------------------------------------
+            // testing cases //
+            /**/
+            for (auto it = PhiNums.begin(); it != PhiNums.end(); ++it) {
+                errs()<< "\n" << "Positions of BB: " << it->first << "\n" << "\n";
             }
-            //
+            // -------------------------------------------------------------------------------
             // Create new BBs
             for (auto iv = PhiNums.begin(); iv != PhiNums.end(); ++iv) {
-                // iterating over Phi nodes (vectors)
-                for (auto it = iv->second.begin(); it != iv->second.end(); ++it) {
-                    // splitEdge at numOfBB (iv->first)
-                    // insert two BBs from two Preds to Succ
-                    InsertedBBs[iv->first].push_back(SplitEdge(PhiAlongPathPredBBs[iv->first].front(), PhiSuccBBs[iv->first].front()));
-                    InsertedBBs[iv->first].push_back(SplitEdge(PhiOtherPathPredBBs[iv->first].front(), PhiSuccBBs[iv->first].front()));
+                // splitEdge at numOfBB (iv->first)
+                // For one phi node, insert two BBs from two Preds to Succ
+                // front
+                InsertedBBs[iv->first].push_back(SplitEdge(PhiAlongPathPredBBs[iv->first].front(), PhiSuccBBs[iv->first].front()));
+                //
+                errs()<< "Create along path BB;" << "\n";
+                // back
+                InsertedBBs[iv->first].push_back(SplitEdge(PhiOtherPathPredBBs[iv->first].front(), PhiSuccBBs[iv->first].front()));
+                //
+                errs()<< "Create other path BB;" << "\n";
+            }
+            // -------------------------------------------------------------------------------
+            // Add new copies in the new BBs
+            for (auto iv = PhiNums.begin(); iv != PhiNums.end(); ++iv) { // number
+                for (auto it = iv->second.begin(); it != iv->second.end(); ++it) { // *Phis
+                    for (auto val = PhiUsesMap[*it].begin(); val != PhiUsesMap[*it].end(); ++val) { // Values
+                        //   check uses in the Preds --> add in BB
+                        // iterate instructions in AlongPathPred BB
+                        for (Instruction &I : *PhiAlongPathPredBBs[iv->first].front()) {
+                            // iterate over users in instructions
+                            for (auto *U : I.users()) {
+                                if (Instruction *useInst = dyn_cast<Instruction>(U)) {
+                                    // use v.s. phi use
+                                    if (useInst == *val) {
+                                        // add x=y to the Pred BB
+                                        // use IRBuilder
+                                        llvm::IRBuilder<> builder(PhiAlongPathPredBBs[iv->first].front());
+                                        // Create an alloca instruction for phi (assuming val is an integer).
+                                        llvm::AllocaInst *it = builder.CreateAlloca((*val)->getType(), nullptr);
+                                        // Create a store instruction to store the value of val into 
+                                        builder.CreateStore(*val, it);
+                                        //
+                                    }
+                                }
+                            }
+                        }
+                        errs() << "iterate instructions in AlongPathPred BB;" << "\n";
+                        // iterate instructions in PhiOtherPathPredBBs
+                        for (Instruction &I : *PhiOtherPathPredBBs[iv->first].front()) {
+                            // iterate over users in instructions
+                            for (auto *U : I.users()) {
+                                if (Instruction *useInst = dyn_cast<Instruction>(U)) {
+                                    // use v.s. phi use
+                                    if (useInst == *val) {
+                                        // add x=y to the Pred BB
+                                        // use IRBuilder
+                                        IRBuilder<> Obuilder(PhiOtherPathPredBBs[iv->first].front());
+                                        // Create an alloca instruction for phi (assuming val is an integer).
+                                        AllocaInst *it = Obuilder.CreateAlloca((*val)->getType(), nullptr);
+                                        // Create a store instruction to store the value of val into 
+                                        Obuilder.CreateStore(*val, it);
+                                        //
+                                    }
+                                }
+                            }
+                        }
+                        errs() << "iterate instructions in PhiOtherPathPredBBs" << "\n";
+                    }
                 }
             }
-            // Convert phi nodes in the new BBs
-            // ......
+            // -------------------------------------------------------------------------------
+            // remove all the phi nodes
+            // for (auto iv = PhiNums.begin(); iv != PhiNums.end(); ++iv) { // number
+            //     for (auto it = iv->second.begin(); it != iv->second.end(); ++it) { // *Phis
+            //     (*it)->eraseFromParent();
+            //     }
+            // }
+            // -------------------------------------------------------------------------------
             return true;
         }
     };
