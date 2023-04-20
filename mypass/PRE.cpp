@@ -249,14 +249,16 @@ namespace
                 // back
                 InsertedBBs[iv->first].push_back(SplitEdge(PhiOtherPathPredBBs[iv->first].front(), PhiSuccBBs[iv->first].front()));
             }
-            
+            std::vector<Instruction *> alloc;
             //-------------------------------------------------------------------------------
             for (map<int, std::vector<llvm::PHINode *>>::iterator iv = PhiNums.begin(); iv != PhiNums.end(); ++iv) { // number of backede
                 for (std::vector<llvm::PHINode *>::iterator it = iv->second.begin(); it != iv->second.end(); ++it) { // *PhiNode
                     Instruction *valPhi = *it;
                     Instruction *alloi = new AllocaInst(valPhi->getType(), 0, valPhi->getName(), entryBB->getTerminator());
+                    alloc.push_back(alloi);
                 }
             }
+            int cnt = 0;
             // Add new copies in the new BBs
             for (map<int, std::vector<llvm::PHINode *>>::iterator iv = PhiNums.begin(); iv != PhiNums.end(); ++iv) { // number of backede
                 for (std::vector<llvm::PHINode *>::iterator it = iv->second.begin(); it != iv->second.end(); ++it) { // *PhiNode
@@ -264,11 +266,13 @@ namespace
                     Value *val = PhiUsesMap[*it].front();
                     Value *val2 = PhiUsesMap[*it].back();
                     Instruction *valPhi = *it;
+
                     // Create an alloca instruction for phi (assuming val is an integer).
                     //Instruction *alloi = new AllocaInst(val->getType(), 0, valPhi->getName(), InsertedBBs[iv->first].back()->getTerminator());
                     // Create a store instruction to store the value of val into
-                    Instruction *str1 = new StoreInst(val2, valPhi, InsertedBBs[iv->first].back()->getTerminator());
-                    Instruction *str2 = new StoreInst(val, valPhi, InsertedBBs[iv->first].front()->getTerminator());
+                    Instruction *str1 = new StoreInst(val2, alloc[cnt], InsertedBBs[iv->first].front()->getTerminator());
+                    Instruction *str2 = new StoreInst(val, alloc[cnt], InsertedBBs[iv->first].back()->getTerminator());
+                    cnt++;
                     // insert back value in PhiOtherPathPredBBs
                     // Create an alloca instruction for phi (assuming val is an integer).
                     // Instruction *alloi2 = new AllocaInst(val2->getType(), 0, "", InsertedBBs[iv->first].back()->getTerminator());
@@ -327,10 +331,10 @@ namespace
                 }
             }
             // -------------------------------------------------------------------------------
-            // remove all the phi nodes
+            //remove all the phi nodes
             // for (map<int, std::vector<llvm::PHINode *>>::iterator iv = PhiNums.begin(); iv != PhiNums.end(); ++iv) { // number
             //     for (std::vector<llvm::PHINode *>::iterator it = iv->second.begin(); it != iv->second.end(); ++it) { // *Phis
-            //         (&(**it))->eraseFromParent();
+            //         (*it)->eraseFromParent();
             //     }
             // } 
             //-------------------------------------------------------------------------------
