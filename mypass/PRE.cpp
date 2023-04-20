@@ -69,7 +69,7 @@ namespace
             }
             // -------------------------------------------------------------------------
             // forwardProp testing
-            forwardProp(F);
+            forwardProp(&F);
             // print BBs
             for (auto &BB : F) {
                 errs() << BB << "\n";
@@ -183,8 +183,9 @@ namespace
         //  (1) Remove each Phi node x = Phi(y, z) by inserting the copies x = y and x = z
         //  (2) Trace from each copy back along the SSA graph (new blocks required) to construct expression trees
         //  (3) Check the uses and push expressions
-        bool forwardProp(Function &F) {
+        bool forwardProp(Function *F) {
             // Create a map to store the uses of Phi nodes
+            BasicBlock *entryBB = &F->getEntryBlock();
             std::map<int, std::vector<PHINode *>> PhiNums;
             std::map<int, std::vector<BasicBlock *>> PhiSuccBBs;
             std::map<int, std::vector<BasicBlock *>> PhiAlongPathPredBBs;
@@ -196,7 +197,7 @@ namespace
             // Assuming we have all the Phi nodes in the pruned SSA form
             // -------------------------------------------------------------------------------
             // Get information
-            for (BasicBlock &BB : F) {
+            for (BasicBlock &BB : *F) {
                 numOfBB++;
                 errs() << "number of BB: " << numOfBB << "\n";
                 // Traverse the instructions in the basic block
@@ -248,90 +249,91 @@ namespace
                 // back
                 InsertedBBs[iv->first].push_back(SplitEdge(PhiOtherPathPredBBs[iv->first].front(), PhiSuccBBs[iv->first].front()));
             }
-            // clone phi in BBs
-            for (auto iv = PhiNums.begin(); iv != PhiNums.end(); ++iv) {
-                for (auto it = iv->second.begin(); it != iv->second.end(); ++it) { // *PhiNode
-                    Instruction *valPhi = (*it)->clone();
-                    valPhi->moveBefore(InsertedBBs[iv->first].front()->getTerminator());
+            
+            //-------------------------------------------------------------------------------
+            for (map<int, std::vector<llvm::PHINode *>>::iterator iv = PhiNums.begin(); iv != PhiNums.end(); ++iv) { // number of backede
+                for (std::vector<llvm::PHINode *>::iterator it = iv->second.begin(); it != iv->second.end(); ++it) { // *PhiNode
+                    Instruction *valPhi = *it;
+                    Instruction *alloi = new AllocaInst(valPhi->getType(), 0, valPhi->getName(), entryBB->getTerminator());
+                }
+            }
+            // Add new copies in the new BBs
+            for (map<int, std::vector<llvm::PHINode *>>::iterator iv = PhiNums.begin(); iv != PhiNums.end(); ++iv) { // number of backede
+                for (std::vector<llvm::PHINode *>::iterator it = iv->second.begin(); it != iv->second.end(); ++it) { // *PhiNode
+                    // insert front value in PhiAlongPathPredBBs
+                    Value *val = PhiUsesMap[*it].front();
+                    Value *val2 = PhiUsesMap[*it].back();
+                    Instruction *valPhi = *it;
+                    // Create an alloca instruction for phi (assuming val is an integer).
+                    //Instruction *alloi = new AllocaInst(val->getType(), 0, valPhi->getName(), InsertedBBs[iv->first].back()->getTerminator());
+                    // Create a store instruction to store the value of val into
+                    Instruction *str1 = new StoreInst(val2, valPhi, InsertedBBs[iv->first].back()->getTerminator());
+                    Instruction *str2 = new StoreInst(val, valPhi, InsertedBBs[iv->first].front()->getTerminator());
+                    // insert back value in PhiOtherPathPredBBs
+                    // Create an alloca instruction for phi (assuming val is an integer).
+                    // Instruction *alloi2 = new AllocaInst(val2->getType(), 0, "", InsertedBBs[iv->first].back()->getTerminator());
+                    // // Create a store instruction to store the value of val into 
+                    //Instruction *str2 = new StoreInst(val2, valPhi, InsertedBBs[iv->first].back()->getTerminator());
+                    // --------------------------------------------------------------------------------------
+                    //for (auto val = PhiUsesMap[*it].begin(); val != PhiUsesMap[*it].end(); ++val) { // Values
+                        // Check uses in the Preds --> add in BB
+                        // iterate instructions in AlongPathPred BB
+                        // for (Instruction &I : *PhiAlongPathPredBBs[iv->first].front()) {
+                        //     // iterate over users in instructions
+                        //     for (Use &U : I.uses()) {
+                        //         if (Instruction *useInst = dyn_cast<Instruction>(U)) {
+                        //             // uses v.s. phi uses
+                        //             User *userInst = U.getUser();
+                        //             // errs() << "Define useInst" << "\n";
+                        //             if (useInst == *val) {
+                        //                 // errs() << "useInst == value" << "\n";
+                        //                 // add x=y to the Pred BB
+                        //                 // use IRBuilder at the new BB
+                        //                 IRBuilder<> builder(InsertedBBs[iv->first].front()->getTerminator());
+                        //                 // Create an alloca instruction for phi (assuming val is an integer).
+                        //                 AllocaInst *it = builder.CreateAlloca((*val)->getType(), nullptr);
+                        //                 // Create a store instruction to store the value of val into 
+                        //                 builder.CreateStore(*val, it);
+                        //                 //
+                        //                 errs() << "Add instruction AlongPath;" << "\n";
+                        //             }
+                        //         }
+                        //     }
+                        // }
+                        // iterate instructions in PhiOtherPathPredBBs
+                        // for (Instruction &I : *PhiOtherPathPredBBs[iv->first].front()) {
+                        //     // iterate over users in instructions
+                        //     for (Use &U : I.uses()) {
+                        //         if (Instruction *useInst = dyn_cast<Instruction>(U)) {
+                        //             // uses v.s. phi uses
+                        //             User *userInst = U.getUser();
+                        //             // errs() << "Define useInst" << "\n";
+                        //             if (useInst == *val) {
+                        //                 // add x=y to the Pred BB
+                        //                 // use IRBuilder
+                        //                 IRBuilder<> Obuilder(InsertedBBs[iv->first].back()->getTerminator());
+                        //                 // Create an alloca instruction for phi (assuming val is an integer).
+                        //                 AllocaInst *it = Obuilder.CreateAlloca((*val)->getType(), nullptr);
+                        //                 // Create a store instruction to store the value of val into 
+                        //                 Obuilder.CreateStore(*val, it);
+                        //                 //
+                        //                 errs() << "Add instruction OtherPath;" << "\n";
+                        //             }
+                        //         }
+                        //     }
+                        // }
+                    //}
+                    // --------------------------------------------------------------------------------------
                 }
             }
             // -------------------------------------------------------------------------------
-            // // Add new copies in the new BBs
-            // for (auto iv = PhiNums.begin(); iv != PhiNums.end(); ++iv) { // number of backede
-            //     for (auto it = iv->second.begin(); it != iv->second.end(); ++it) { // *PhiNode
-            //         // insert front value in PhiAlongPathPredBBs
-            //         Value *val = PhiUsesMap[*it].front();
-            //         Value *val2 = PhiUsesMap[*it].back();
-            //         Instruction *valPhi = *it;
-            //         // Create an alloca instruction for phi (assuming val is an integer).
-            //         Instruction *alloi = new AllocaInst(val->getType(), 0, "", InsertedBBs[iv->first].front()->getTerminator());
-            //         // Create a store instruction to store the value of val into
-            //         Instruction *str1 = new StoreInst(val, valPhi, InsertedBBs[iv->first].front()->getTerminator());
-            //         // insert back value in PhiOtherPathPredBBs
-            //         // Create an alloca instruction for phi (assuming val is an integer).
-            //         // Instruction *alloi2 = new AllocaInst(val2->getType(), 0, "", InsertedBBs[iv->first].back()->getTerminator());
-            //         // // Create a store instruction to store the value of val into 
-            //         // Instruction *str2 = new StoreInst(val2, valPhi, InsertedBBs[iv->first].back()->getTerminator());
-            //         // --------------------------------------------------------------------------------------
-            //         //for (auto val = PhiUsesMap[*it].begin(); val != PhiUsesMap[*it].end(); ++val) { // Values
-            //             // Check uses in the Preds --> add in BB
-            //             // iterate instructions in AlongPathPred BB
-            //             // for (Instruction &I : *PhiAlongPathPredBBs[iv->first].front()) {
-            //             //     // iterate over users in instructions
-            //             //     for (Use &U : I.uses()) {
-            //             //         if (Instruction *useInst = dyn_cast<Instruction>(U)) {
-            //             //             // uses v.s. phi uses
-            //             //             User *userInst = U.getUser();
-            //             //             // errs() << "Define useInst" << "\n";
-            //             //             if (useInst == *val) {
-            //             //                 // errs() << "useInst == value" << "\n";
-            //             //                 // add x=y to the Pred BB
-            //             //                 // use IRBuilder at the new BB
-            //             //                 IRBuilder<> builder(InsertedBBs[iv->first].front()->getTerminator());
-            //             //                 // Create an alloca instruction for phi (assuming val is an integer).
-            //             //                 AllocaInst *it = builder.CreateAlloca((*val)->getType(), nullptr);
-            //             //                 // Create a store instruction to store the value of val into 
-            //             //                 builder.CreateStore(*val, it);
-            //             //                 //
-            //             //                 errs() << "Add instruction AlongPath;" << "\n";
-            //             //             }
-            //             //         }
-            //             //     }
-            //             // }
-            //             // iterate instructions in PhiOtherPathPredBBs
-            //             // for (Instruction &I : *PhiOtherPathPredBBs[iv->first].front()) {
-            //             //     // iterate over users in instructions
-            //             //     for (Use &U : I.uses()) {
-            //             //         if (Instruction *useInst = dyn_cast<Instruction>(U)) {
-            //             //             // uses v.s. phi uses
-            //             //             User *userInst = U.getUser();
-            //             //             // errs() << "Define useInst" << "\n";
-            //             //             if (useInst == *val) {
-            //             //                 // add x=y to the Pred BB
-            //             //                 // use IRBuilder
-            //             //                 IRBuilder<> Obuilder(InsertedBBs[iv->first].back()->getTerminator());
-            //             //                 // Create an alloca instruction for phi (assuming val is an integer).
-            //             //                 AllocaInst *it = Obuilder.CreateAlloca((*val)->getType(), nullptr);
-            //             //                 // Create a store instruction to store the value of val into 
-            //             //                 Obuilder.CreateStore(*val, it);
-            //             //                 //
-            //             //                 errs() << "Add instruction OtherPath;" << "\n";
-            //             //             }
-            //             //         }
-            //             //     }
-            //             // }
-            //         //}
-            //         // --------------------------------------------------------------------------------------
-            //     }
-            // }
-            // -------------------------------------------------------------------------------
             // remove all the phi nodes
-            // for (auto iv = PhiNums.begin(); iv != PhiNums.end(); ++iv) { // number
-            //     for (auto it = iv->second.begin(); it != iv->second.end(); ++it) { // *Phis
-            //         (*it)->eraseFromParent();
+            // for (map<int, std::vector<llvm::PHINode *>>::iterator iv = PhiNums.begin(); iv != PhiNums.end(); ++iv) { // number
+            //     for (std::vector<llvm::PHINode *>::iterator it = iv->second.begin(); it != iv->second.end(); ++it) { // *Phis
+            //         (&(**it))->eraseFromParent();
             //     }
-            // }
-            // -------------------------------------------------------------------------------
+            // } 
+            //-------------------------------------------------------------------------------
             return true;
         }
 

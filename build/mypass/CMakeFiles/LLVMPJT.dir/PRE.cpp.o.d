@@ -1,5 +1,5 @@
 mypass/CMakeFiles/LLVMPJT.dir/PRE.cpp.o: \
- /n/eecs583a/home/ireneyyh/Project/effective-partial-redundancy-elimination/mypass/PRE.cpp \
+ /n/eecs583a/home/zhifanx/effective-partial-redundancy-elimination/mypass/PRE.cpp \
  /usr/include/stdc-predef.h /usr/local/include/llvm/Pass.h \
  /usr/include/c++/11/string \
  /usr/include/x86_64-linux-gnu/c++/11/bits/c++config.h \
@@ -256,42 +256,27 @@ mypass/CMakeFiles/LLVMPJT.dir/PRE.cpp.o: \
  /usr/include/c++/11/bits/parse_numbers.h \
  /usr/include/c++/11/bits/std_mutex.h \
  /usr/include/c++/11/bits/unique_lock.h /usr/include/c++/11/shared_mutex \
- /usr/local/include/llvm/Support/raw_ostream.h \
- /usr/local/include/llvm/Analysis/BlockFrequencyInfo.h \
- /usr/local/include/llvm/IR/PassManager.h \
- /usr/local/include/llvm/ADT/SmallPtrSet.h \
- /usr/local/include/llvm/ADT/TinyPtrVector.h \
- /usr/local/include/llvm/ADT/PointerUnion.h \
- /usr/local/include/llvm/ADT/PointerIntPair.h \
- /usr/local/include/llvm/IR/Function.h \
- /usr/local/include/llvm/ADT/DenseSet.h \
- /usr/local/include/llvm/ADT/Twine.h \
- /usr/local/include/llvm/ADT/ilist_node.h \
- /usr/local/include/llvm/ADT/ilist_node_base.h \
- /usr/local/include/llvm/ADT/ilist_node_options.h \
- /usr/local/include/llvm/IR/Argument.h \
- /usr/local/include/llvm/IR/Attributes.h \
- /usr/local/include/llvm/ADT/BitmaskEnum.h \
- /usr/local/include/llvm/ADT/SmallString.h \
- /usr/local/include/llvm/Support/Alignment.h \
- /usr/local/include/llvm/Support/CodeGen.h /usr/include/c++/11/bitset \
- /usr/include/c++/11/set /usr/include/c++/11/bits/stl_tree.h \
- /usr/include/c++/11/bits/stl_set.h \
- /usr/include/c++/11/bits/stl_multiset.h \
- /usr/local/include/llvm/IR/Attributes.inc \
- /usr/local/include/llvm/IR/Value.h /usr/local/include/llvm/IR/Use.h \
- /usr/local/include/llvm/IR/Value.def \
+ /usr/local/include/llvm/IR/CFG.h \
+ /usr/local/include/llvm/ADT/GraphTraits.h \
  /usr/local/include/llvm/IR/BasicBlock.h \
- /usr/local/include/llvm/ADT/ilist.h \
+ /usr/local/include/llvm/ADT/Twine.h /usr/local/include/llvm/ADT/ilist.h \
  /usr/local/include/llvm/ADT/simple_ilist.h \
  /usr/local/include/llvm/ADT/ilist_base.h \
+ /usr/local/include/llvm/ADT/ilist_node_base.h \
+ /usr/local/include/llvm/ADT/PointerIntPair.h \
  /usr/local/include/llvm/ADT/ilist_iterator.h \
+ /usr/local/include/llvm/ADT/ilist_node.h \
+ /usr/local/include/llvm/ADT/ilist_node_options.h \
  /usr/local/include/llvm/IR/Instruction.h \
  /usr/local/include/llvm/ADT/Bitfields.h \
  /usr/local/include/llvm/IR/DebugLoc.h \
  /usr/local/include/llvm/IR/TrackingMDRef.h \
  /usr/local/include/llvm/IR/Metadata.h \
+ /usr/local/include/llvm/ADT/PointerUnion.h \
  /usr/local/include/llvm/IR/Constant.h /usr/local/include/llvm/IR/User.h \
+ /usr/local/include/llvm/IR/Use.h /usr/local/include/llvm/IR/Value.h \
+ /usr/local/include/llvm/Support/Alignment.h \
+ /usr/local/include/llvm/IR/Value.def \
  /usr/local/include/llvm/IR/LLVMContext.h \
  /usr/local/include/llvm/IR/DiagnosticHandler.h \
  /usr/local/include/llvm/IR/FixedMetadataKinds.def \
@@ -299,15 +284,31 @@ mypass/CMakeFiles/LLVMPJT.dir/PRE.cpp.o: \
  /usr/local/include/llvm/IR/SymbolTableListTraits.h \
  /usr/local/include/llvm/Support/AtomicOrdering.h \
  /usr/local/include/llvm/IR/Instruction.def \
+ /usr/local/include/llvm/IR/Function.h \
+ /usr/local/include/llvm/ADT/DenseSet.h \
+ /usr/local/include/llvm/IR/Argument.h \
+ /usr/local/include/llvm/IR/Attributes.h \
+ /usr/local/include/llvm/ADT/BitmaskEnum.h \
+ /usr/local/include/llvm/ADT/SmallString.h \
+ /usr/local/include/llvm/Support/CodeGen.h /usr/include/c++/11/bitset \
+ /usr/include/c++/11/set /usr/include/c++/11/bits/stl_tree.h \
+ /usr/include/c++/11/bits/stl_set.h \
+ /usr/include/c++/11/bits/stl_multiset.h \
+ /usr/local/include/llvm/IR/Attributes.inc \
  /usr/local/include/llvm/IR/CallingConv.h \
  /usr/local/include/llvm/IR/DerivedTypes.h \
  /usr/local/include/llvm/IR/Type.h \
  /usr/local/include/llvm/Support/TypeSize.h \
+ /usr/local/include/llvm/Support/raw_ostream.h \
  /usr/local/include/llvm/IR/GlobalObject.h \
  /usr/local/include/llvm/IR/GlobalValue.h \
  /usr/local/include/llvm/Support/MD5.h \
  /usr/local/include/llvm/Support/Endian.h \
  /usr/local/include/llvm/IR/OperandTraits.h \
+ /usr/local/include/llvm/Analysis/BlockFrequencyInfo.h \
+ /usr/local/include/llvm/IR/PassManager.h \
+ /usr/local/include/llvm/ADT/SmallPtrSet.h \
+ /usr/local/include/llvm/ADT/TinyPtrVector.h \
  /usr/local/include/llvm/IR/Module.h /usr/local/include/llvm/IR/Comdat.h \
  /usr/local/include/llvm/IR/DataLayout.h \
  /usr/local/include/llvm/ADT/APInt.h \
@@ -332,12 +333,26 @@ mypass/CMakeFiles/LLVMPJT.dir/PRE.cpp.o: \
  /usr/include/c++/11/bits/stl_list.h /usr/include/c++/11/bits/list.tcc \
  /usr/local/include/llvm/Support/BlockFrequency.h \
  /usr/local/include/llvm/Analysis/BranchProbabilityInfo.h \
- /usr/local/include/llvm/IR/CFG.h \
- /usr/local/include/llvm/ADT/GraphTraits.h \
  /usr/local/include/llvm/IR/ValueHandle.h \
  /usr/local/include/llvm/Support/BranchProbability.h \
  /usr/include/c++/11/numeric /usr/include/c++/11/bits/stl_numeric.h \
  /usr/include/c++/11/pstl/glue_numeric_defs.h \
+ /usr/local/include/llvm/IR/IRBuilder.h \
+ /usr/local/include/llvm/IR/ConstantFolder.h \
+ /usr/local/include/llvm/IR/Constants.h \
+ /usr/local/include/llvm/ADT/APFloat.h \
+ /usr/local/include/llvm/ADT/FloatingPointMode.h \
+ /usr/local/include/llvm/ADT/StringSwitch.h \
+ /usr/local/include/llvm/IR/ConstantFold.h \
+ /usr/local/include/llvm/IR/InstrTypes.h \
+ /usr/local/include/llvm/ADT/Sequence.h \
+ /usr/local/include/llvm/IR/IRBuilderFolder.h \
+ /usr/local/include/llvm/IR/Operator.h \
+ /usr/local/include/llvm/ADT/MapVector.h /usr/local/include/llvm/IR/FMF.h \
+ /usr/local/include/llvm/IR/FPEnv.h \
+ /usr/local/include/llvm/IR/Instructions.h \
+ /usr/local/include/llvm/IR/Intrinsics.h \
+ /usr/local/include/llvm/IR/IntrinsicEnums.inc \
  /usr/local/include/llvm/IR/InstIterator.h \
  /usr/local/include/llvm/Transforms/Scalar/Reassociate.h \
  /usr/local/include/llvm/ADT/PostOrderIterator.h \
@@ -347,11 +362,8 @@ mypass/CMakeFiles/LLVMPJT.dir/PRE.cpp.o: \
  /usr/local/include/llvm/Analysis/LoopAnalysisManager.h \
  /usr/local/include/llvm/Passes/PassBuilder.h \
  /usr/local/include/llvm/Analysis/CGSCCPassManager.h \
- /usr/local/include/llvm/ADT/MapVector.h \
  /usr/local/include/llvm/Analysis/LazyCallGraph.h \
  /usr/local/include/llvm/Analysis/TargetLibraryInfo.h \
- /usr/local/include/llvm/IR/InstrTypes.h \
- /usr/local/include/llvm/ADT/Sequence.h \
  /usr/local/include/llvm/Analysis/TargetLibraryInfo.def \
  /usr/local/include/llvm/Support/Allocator.h \
  /usr/local/include/llvm/Passes/OptimizationLevel.h \
@@ -367,7 +379,6 @@ mypass/CMakeFiles/LLVMPJT.dir/PRE.cpp.o: \
  /usr/local/include/llvm/Support/FormatCommon.h \
  /usr/local/include/llvm/Support/FormatVariadicDetails.h \
  /usr/local/include/llvm/Support/FormatProviders.h \
- /usr/local/include/llvm/ADT/StringSwitch.h \
  /usr/local/include/llvm/Support/NativeFormatting.h \
  /usr/include/c++/11/map /usr/include/c++/11/bits/stl_map.h \
  /usr/include/c++/11/bits/stl_multimap.h \
@@ -375,23 +386,11 @@ mypass/CMakeFiles/LLVMPJT.dir/PRE.cpp.o: \
  /usr/local/include/llvm/Transforms/IPO/ModuleInliner.h \
  /usr/local/include/llvm/Transforms/Instrumentation.h \
  /usr/local/include/llvm/IR/DebugInfoMetadata.h \
- /usr/local/include/llvm/IR/Constants.h \
- /usr/local/include/llvm/ADT/APFloat.h \
- /usr/local/include/llvm/ADT/FloatingPointMode.h \
  /usr/local/include/llvm/Support/CommandLine.h \
  /usr/local/include/llvm/Support/ManagedStatic.h \
  /usr/include/c++/11/atomic \
  /usr/local/include/llvm/Support/Discriminator.h \
  /usr/local/include/llvm/IR/DebugInfoFlags.def \
- /usr/local/include/llvm/IR/IRBuilder.h \
- /usr/local/include/llvm/IR/ConstantFolder.h \
- /usr/local/include/llvm/IR/ConstantFold.h \
- /usr/local/include/llvm/IR/IRBuilderFolder.h \
- /usr/local/include/llvm/IR/Operator.h /usr/local/include/llvm/IR/FMF.h \
- /usr/local/include/llvm/IR/FPEnv.h \
- /usr/local/include/llvm/IR/Instructions.h \
- /usr/local/include/llvm/IR/Intrinsics.h \
- /usr/local/include/llvm/IR/IntrinsicEnums.inc \
  /usr/local/include/llvm/Transforms/Scalar/LoopPassManager.h \
  /usr/local/include/llvm/ADT/PriorityWorklist.h \
  /usr/local/include/llvm/Analysis/LoopInfo.h \

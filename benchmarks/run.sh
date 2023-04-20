@@ -6,7 +6,7 @@
 ### Usage: sh run.sh compress compress.in OR sh run.sh simple OR sh run.sh wc cccp.c
 ### Note: Do NOT include inputs/ in ${input}, `./run.sh compress inputs/compress.in` will provide different results.
 # ACTION NEEDED: If the path is different, please update it here.
-PATH2LIB=~/Project/effective-partial-redundancy-elimination/build/mypass/LLVMPJT.so        # Specify your build directory in the project
+PATH2LIB=~/effective-partial-redundancy-elimination/build/mypass/LLVMPJT.so        # Specify your build directory in the project
 
 # ACTION NEEDED: Choose the correct pass when running.
 NAME_MYPASS=-PRE         # Choose either -fplicm-correctness ...
