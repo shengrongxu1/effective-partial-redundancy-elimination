@@ -250,14 +250,19 @@ namespace
                 InsertedBBs[iv->first].push_back(SplitEdge(PhiOtherPathPredBBs[iv->first].front(), PhiSuccBBs[iv->first].front()));
             }
             std::vector<Instruction *> alloc;
+            std::vector<Instruction *> phiNodesVec;
             //-------------------------------------------------------------------------------
-            for (map<int, std::vector<llvm::PHINode *>>::iterator iv = PhiNums.begin(); iv != PhiNums.end(); ++iv) { // number of backede
+            for (map<int, std::vector<llvm::PHINode *>>::iterator iv = PhiNums.begin(); iv != PhiNums.end(); ++iv) { // number of backedge
                 for (std::vector<llvm::PHINode *>::iterator it = iv->second.begin(); it != iv->second.end(); ++it) { // *PhiNode
                     Instruction *valPhi = *it;
-                    Instruction *alloi = new AllocaInst(valPhi->getType(), 0, valPhi->getName(), entryBB->getTerminator());
+                    // i32 type
+                    Type* i32Type = Type::getInt32Ty(F->getContext());
+                    Instruction *alloi = new AllocaInst(i32Type, 0, valPhi->getName(), entryBB->getTerminator());
                     alloc.push_back(alloi);
+                    phiNodesVec.push_back(valPhi);
                 }
             }
+            //
             int cnt = 0;
             // Add new copies in the new BBs
             for (map<int, std::vector<llvm::PHINode *>>::iterator iv = PhiNums.begin(); iv != PhiNums.end(); ++iv) { // number of backede
@@ -266,7 +271,6 @@ namespace
                     Value *val = PhiUsesMap[*it].front();
                     Value *val2 = PhiUsesMap[*it].back();
                     Instruction *valPhi = *it;
-
                     // Create an alloca instruction for phi (assuming val is an integer).
                     //Instruction *alloi = new AllocaInst(val->getType(), 0, valPhi->getName(), InsertedBBs[iv->first].back()->getTerminator());
                     // Create a store instruction to store the value of val into
@@ -331,12 +335,35 @@ namespace
                 }
             }
             // -------------------------------------------------------------------------------
-            //remove all the phi nodes
+            // change phi uses to store uses in every BB
+            for (int count = 0; count < cnt; count++) {
+                // current phi node
+                Value *valPhi = phiNodesVec[count];
+                // iterate over BBs
+                for (BasicBlock &BB : *F) {
+                    for (Instruction &I : BB) {
+                        //iterate over users of instructions
+                        for (unsigned i = 0, e = I.getNumOperands(); i != e; ++i) {
+                            if (I.getOperand(i) == valPhi) { //!!!!!!!!!
+                                // Create a PtrToInt instruction to convert the pointer type to i32 type
+                                // Type *i32Type = Type::getInt32Ty(F->getContext());
+                                // Instruction *castInst = new PtrToIntInst(alloc[i], i32Type);
+                                // replace
+                                //alloc[i]
+                                // I.setOperand(i, alloc[i]);
+                                //(&I)->getParent()->getInstList().insertAfter((&I)->getIterator(), castInst);
+                            }
+                        }
+                    }
+                }
+            }
+            // -------------------------------------------------------------------------------
+            // remove all the phi nodes
             // for (map<int, std::vector<llvm::PHINode *>>::iterator iv = PhiNums.begin(); iv != PhiNums.end(); ++iv) { // number
             //     for (std::vector<llvm::PHINode *>::iterator it = iv->second.begin(); it != iv->second.end(); ++it) { // *Phis
             //         (*it)->eraseFromParent();
             //     }
-            // } 
+            // }
             //-------------------------------------------------------------------------------
             return true;
         }
