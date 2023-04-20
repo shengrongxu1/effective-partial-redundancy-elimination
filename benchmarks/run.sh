@@ -26,7 +26,8 @@ opt -passes='pgo-instr-gen,instrprof' ${1}.ls.bc -o ${1}.ls.prof.bc
  opt -mem2reg ${1}.ll -o ${1}_opt.ll
  llvm-dis ${1}_opt.ll -o ${1}_opt_dis.ll
  llvm-as ${1}_opt_dis.ll -o ${1}_opt_dis.bc
- opt -enable-new-pm=0 -load ${PATH2LIB} -PRE < ${1}_opt_dis.bc > /dev/null
+ opt -enable-new-pm=0 -o ${1}_opt_dis.bc -load ${PATH2LIB} -PRE < ${1}_opt_dis.bc > /dev/null
+
  # When we run the profiler embedded executable, it generates a default.profraw file that contains the profile data.
  ./${1}_prof > correct_output
 
