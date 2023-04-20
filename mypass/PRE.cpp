@@ -334,6 +334,49 @@ namespace
             // -------------------------------------------------------------------------------
             return true;
         }
+
+        //retrun ordered operands for each value
+        //input: vactor of all phi uses
+        //outPut: map of ordered usses operands
+        //          key:use  val: rank ordered operands
+        std::map<Value *,std::vector<std::pair<llvm::Value *, int>>> sortAllPHIOperands(std::vector<Value *> vals){
+            std::map<Value *,std::vector<std::pair<llvm::Value *, int>>> phiMap;
+            for(int i=0;i<vals.size();i++){
+                std::map<llvm::Value *, int> temp;
+                getOperads(vals[i],temp);
+                phiMap[vals[i]]=sortMapByValue(temp);
+            }
+            return phiMap;
+        }
+        
+        void getOperads(Value * val, std::map<llvm::Value *, int>valRankMap){
+            if(llvm::cast<llvm::Instruction>(val)->getOpcode() == llvm::Instruction::Add){
+                getOperads(llvm::cast<llvm::Instruction>(val)->getOperand(0),valRankMap);
+                getOperads(llvm::cast<llvm::Instruction>(val)->getOperand(1),valRankMap);
+            }else{
+                valRankMap[val]=getRank(val);
+                return;
+            }
+        }
+
+        int getRank(llvm::Value * exp){
+            if(rankMap.find(exp) != rankMap.end()){
+                return rankMap[exp];
+            }else{
+                return -1;
+            }
+        }
+
+        static bool compareByValue(const std::pair<llvm::Value *, int> &a, const std::pair<llvm::Value *, int> &b) {
+            return a.second < b.second;
+        }
+
+        std::vector<std::pair<llvm::Value *, int>> sortMapByValue(const std::map<llvm::Value *, int> &m) {
+            std::vector<std::pair<llvm::Value *, int>> sortedPairs(m.begin(), m.end());
+            std::sort(sortedPairs.begin(), sortedPairs.end(), compareByValue);
+            return sortedPairs;
+        }
+
     };
 }
 char PRE::ID = 0;

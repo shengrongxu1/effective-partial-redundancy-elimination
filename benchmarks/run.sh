@@ -6,7 +6,8 @@
 ### Usage: sh run.sh compress compress.in OR sh run.sh simple OR sh run.sh wc cccp.c
 ### Note: Do NOT include inputs/ in ${input}, `./run.sh compress inputs/compress.in` will provide different results.
 # ACTION NEEDED: If the path is different, please update it here.
-PATH2LIB=~/effective-partial-redundancy-elimination/build/mypass/LLVMPJT.so        # Specify your build directory in the project
+PATH2LIB=~/Project/effective-partial-redundancy-elimination/build/mypass/LLVMPJT.so        # Specify your build directory in the project
+
 # ACTION NEEDED: Choose the correct pass when running.
 NAME_MYPASS=-PRE         # Choose either -fplicm-correctness ...
 # PASS=-fplicm-performance                 # ... or -fplicm-performance
@@ -26,7 +27,8 @@ opt -passes='pgo-instr-gen,instrprof' ${1}.ls.bc -o ${1}.ls.prof.bc
  opt -mem2reg ${1}.ll -o ${1}_opt.ll
  llvm-dis ${1}_opt.ll -o ${1}_opt_dis.ll
  llvm-as ${1}_opt_dis.ll -o ${1}_opt_dis.bc
- opt -enable-new-pm=0 -load ${PATH2LIB} -PRE < ${1}_opt_dis.bc > /dev/null
+ opt -enable-new-pm=0 -o ${1}_opt_dis.bc -load ${PATH2LIB} -PRE < ${1}_opt_dis.bc > /dev/null
+
  # When we run the profiler embedded executable, it generates a default.profraw file that contains the profile data.
  ./${1}_prof > correct_output
 
