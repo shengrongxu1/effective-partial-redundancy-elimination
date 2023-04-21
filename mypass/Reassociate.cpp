@@ -160,7 +160,6 @@ static BinaryOperator *isReassociableOp(Value *V, unsigned Opcode) {
       return BO;
   return nullptr;
 }
- 
 static BinaryOperator *isReassociableOp(Value *V, unsigned Opcode1,
                                         unsigned Opcode2) {
   auto *BO = dyn_cast<BinaryOperator>(V);

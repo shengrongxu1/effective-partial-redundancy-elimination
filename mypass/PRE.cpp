@@ -14,7 +14,6 @@
 #include <llvm/IR/Function.h>
 #include <llvm/IR/PassManager.h>
 #include "llvm/IR/IRBuilder.h"
-#include <llvm/Transforms/Scalar/Reassociate.h>
 #include <llvm/Transforms/Utils.h>
 #include <llvm/Analysis/LoopAnalysisManager.h>
 #include <llvm/Passes/PassBuilder.h>
@@ -23,9 +22,19 @@
 #include "llvm/Transforms/Utils/PromoteMemToReg.h"
 #include "llvm/Transforms/Utils/SSAUpdater.h"
 #include "llvm/Transforms/Utils/BasicBlockUtils.h"
+#include "llvm/Transforms/Utils/Local.h"
+#include "llvm/ADT/DenseMap.h"
+#include "llvm/ADT/PostOrderIterator.h"
+#include "llvm/ADT/SetVector.h"
+#include "llvm/IR/PassManager.h"
+#include "llvm/IR/ValueHandle.h"
+#include <deque>
+#include "Reassociate.h"
 #include <unordered_map>
 #include <vector>
 #include <algorithm>
+#include <cassert>
+#include <utility>
 // LCM
 //  Optimal Computation Points
 // 1. Safe-Earliest Transformation: insert h = t at every entry of node n satisfying DSafe & Earliest and replace each t by h
@@ -70,6 +79,93 @@ namespace
             // -------------------------------------------------------------------------
             // forwardProp testing
             forwardProp(&F);
+            // -------------------------------------------------------------------------
+            //Reassociation
+            ReassociatePass reassociatePass;
+            ReversePostOrderTraversal<Function *> RPOT(&F);
+            using OrderedSet = SetVector<AssertingVH<Instruction>, std::deque<AssertingVH<Instruction>>>;
+            OrderedSet RedoInsts;
+            static const unsigned GlobalReassociateLimit = 10;
+            static const unsigned NumBinaryOps =
+            Instruction::BinaryOpsEnd - Instruction::BinaryOpsBegin;
+
+            struct PairMapValue
+            {
+                WeakVH Value1;
+                WeakVH Value2;
+                unsigned Score;
+                bool isValid() const { return Value1 && Value2; }
+            };
+            DenseMap<std::pair<Value *, Value *>, PairMapValue> PairMap[NumBinaryOps];
+
+
+            // Calculate the rank map for F.
+            reassociatePass.BuildRankMap(F, RPOT);
+
+            // Build the pair map before running reassociate.
+            // Technically this would be more accurate if we did it after one round
+            // of reassociation, but in practice it doesn't seem to help much on
+            // real-world code, so don't waste the compile time running reassociate
+            // twice.
+            // If a user wants, they could expicitly run reassociate twice in their
+            // pass pipeline for further potential gains.
+            // It might also be possible to update the pair map during runtime, but the
+            // overhead of that may be large if there's many reassociable chains.
+            reassociatePass.BuildPairMap(RPOT);
+            DenseMap<BasicBlock *, unsigned> RankMap = reassociatePass.RankMap;
+            DenseMap<AssertingVH<Value>, unsigned> ValueRankMap = reassociatePass.ValueRankMap;
+            // Traverse the same blocks that were analysed by BuildRankMap.
+            for (BasicBlock *BI : RPOT)
+            {
+                assert(RankMap.count(&*BI) && "BB should be ranked.");
+                // Optimize every instruction in the basic block.
+                for (BasicBlock::iterator II = BI->begin(), IE = BI->end(); II != IE;)
+                    if (isInstructionTriviallyDead(&*II))
+                    {
+                        reassociatePass.EraseInst(&*II++);
+                    }
+                    else
+                    {
+                        reassociatePass.OptimizeInst(&*II);
+                        assert(II->getParent() == &*BI && "Moved to a different block!");
+                        ++II;
+                    }
+
+                // Make a copy of all the instructions to be redone so we can remove dead
+                // instructions.
+                OrderedSet ToRedo(RedoInsts);
+                // Iterate over all instructions to be reevaluated and remove trivially dead
+                // instructions. If any operand of the trivially dead instruction becomes
+                // dead mark it for deletion as well. Continue this process until all
+                // trivially dead instructions have been removed.
+                while (!ToRedo.empty())
+                {
+                    Instruction *I = ToRedo.pop_back_val();
+                    if (isInstructionTriviallyDead(I))
+                    {
+                        reassociatePass.RecursivelyEraseDeadInsts(I, ToRedo);
+                    }
+                }
+
+                // Now that we have removed dead instructions, we can reoptimize the
+                // remaining instructions.
+                while (!RedoInsts.empty())
+                {
+                    Instruction *I = RedoInsts.front();
+                    RedoInsts.erase(RedoInsts.begin());
+                    if (isInstructionTriviallyDead(I))
+                        reassociatePass.EraseInst(I);
+                    else
+                        reassociatePass.OptimizeInst(I);
+                }
+            }
+
+            // We are done with the rank map and pair map.
+            RankMap.clear();
+            ValueRankMap.clear();
+            for (auto &Entry : PairMap)
+                Entry.clear();
+
             // print BBs
             for (auto &BB : F) {
                 errs() << BB << "\n";

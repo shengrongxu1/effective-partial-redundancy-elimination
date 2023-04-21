@@ -1,1 +1,0 @@
-/usr/bin/c++ -fPIC  -Wl,-rpath-link,  -Wl,--gc-sections -shared  -o LLVMPJT.so CMakeFiles/LLVMPJT.dir/PRE.cpp.o  -Wl,-rpath,"\$ORIGIN/../lib" 

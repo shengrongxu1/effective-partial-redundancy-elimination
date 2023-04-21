@@ -73,7 +73,6 @@ public:
   using OrderedSet =
       SetVector<AssertingVH<Instruction>, std::deque<AssertingVH<Instruction>>>;
  
-protected:
   DenseMap<BasicBlock *, unsigned> RankMap;
   DenseMap<AssertingVH<Value>, unsigned> ValueRankMap;
   OrderedSet RedoInsts;
@@ -95,8 +94,6 @@ protected:
  
 public:
   PreservedAnalyses run(Function &F, FunctionAnalysisManager &);
- 
-private:
   void BuildRankMap(Function &F, ReversePostOrderTraversal<Function *> &RPOT);
   unsigned getRank(Value *V);
   void canonicalizeOperands(Instruction *I);
