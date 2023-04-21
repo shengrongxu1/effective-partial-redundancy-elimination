@@ -19,8 +19,8 @@
 //
 //===----------------------------------------------------------------------===//
  
-#ifndef LLVM_TRANSFORMS_SCALAR_REASSOCIATE_H
-#define LLVM_TRANSFORMS_SCALAR_REASSOCIATE_H
+#ifndef LOCAL_REASSOCIATE_H
+#define LOCAL_REASSOCIATE_H
  
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/PostOrderIterator.h"
@@ -68,7 +68,8 @@ class XorOpnd;
 } // end namespace reassociate
  
 /// Reassociate commutative expressions.
-class ReassociatePass : public PassInfoMixin<ReassociatePass> {
+//class ReassociatePass : public PassInfoMixin<ReassociatePass> {
+class Reassociate {
 public:
   using OrderedSet =
       SetVector<AssertingVH<Instruction>, std::deque<AssertingVH<Instruction>>>;
@@ -91,7 +92,7 @@ public:
   DenseMap<std::pair<Value *, Value *>, PairMapValue> PairMap[NumBinaryOps];
  
   bool MadeChange;
- 
+ std::vector<BasicBlock *> freqPath;
 public:
   PreservedAnalyses run(Function &F, FunctionAnalysisManager &);
   void BuildRankMap(Function &F, ReversePostOrderTraversal<Function *> &RPOT);
@@ -123,8 +124,9 @@ public:
                                                Value *OtherOp);
   Instruction *canonicalizeNegFPConstants(Instruction *I);
   void BuildPairMap(ReversePostOrderTraversal<Function *> &RPOT);
+  bool checkPathFreq(llvm::Instruction *II);
 };
  
 } // end namespace llvm
  
-#endif // LLVM_TRANSFORMS_SCALAR_REASSOCIATE_H
+#endif // LOCAL_REASSOCIATE_H
