@@ -40,7 +40,7 @@
 #include "llvm/IR/Function.h"
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/InstrTypes.h"
-#include "llvm/IR/Instruction.h"
+#include <llvm/IR/Instruction.h>
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Operator.h"
 #include "llvm/IR/PassManager.h"
@@ -898,13 +898,17 @@ static Value *NegateValue(Value *V, Instruction *BI,
       continue;
  
     Instruction *InsertPt;
-    if (Instruction *InstInput = dyn_cast<Instruction>(V)) {
-      InsertPt = InstInput->getInsertionPointAfterDef();
-      if (!InsertPt)
-        continue;
+
+    if (llvm::Instruction *InstInput = llvm::dyn_cast<llvm::Instruction>(V)) {
+      // Set the insertion point to immediately after 'InstInput'
+      llvm::BasicBlock::iterator it(InstInput);
+      ++it;
+      InsertPt = &*it;
     } else {
+      // Set the insertion point to the beginning of the entry block
       InsertPt = &*TheNeg->getFunction()->getEntryBlock().begin();
     }
+
  
     TheNeg->moveBefore(InsertPt);
     if (TheNeg->getOpcode() == Instruction::Sub) {
@@ -2045,7 +2049,7 @@ void ReassociatePass::EraseInst(Instruction *I) {
       // blocks because it's a waste of time and also because it can
       // lead to infinite loop due to LLVM's non-standard definition
       // of dominance.
-      if (ValueRankMap.contains(Op))
+      if (ValueRankMap.count(Op)>0)
         RedoInsts.insert(Op);
     }
  
