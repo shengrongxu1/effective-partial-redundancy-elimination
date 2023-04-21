@@ -255,9 +255,7 @@ namespace
             for (map<int, std::vector<llvm::PHINode *>>::iterator iv = PhiNums.begin(); iv != PhiNums.end(); ++iv) { // number of backedge
                 for (std::vector<llvm::PHINode *>::iterator it = iv->second.begin(); it != iv->second.end(); ++it) { // *PhiNode
                     Instruction *valPhi = *it;
-                    // i32 type
-                    Type* i32Type = Type::getInt32Ty(F->getContext());
-                    Instruction *alloi = new AllocaInst(i32Type, 0, valPhi->getName(), entryBB->getTerminator());
+                    Instruction *alloi = new AllocaInst(valPhi->getType(), 0, valPhi->getName(), entryBB->getTerminator());
                     alloc.push_back(alloi);
                     phiNodesVec.push_back(valPhi);
                 }
@@ -340,11 +338,20 @@ namespace
                 // current phi node
                 Value *valPhi = phiNodesVec[count];
                 // iterate over BBs
-                for (BasicBlock &BB : *F) {
-                    for (Instruction &I : BB) {
+               for (Function::iterator BB = F->begin(), E = F->end(); BB != E; ++BB) {
+                    for (BasicBlock::iterator i = BB->begin(), be = BB->end(); i != be; ++i){
+                        Instruction* inst = &(*i);
                         //iterate over users of instructions
-                        for (unsigned i = 0, e = I.getNumOperands(); i != e; ++i) {
-                            if (I.getOperand(i) == valPhi) { //!!!!!!!!!
+                        int opcnt = 0;
+                        for (User::op_iterator op = inst->op_begin(), opEnd = inst->op_end(); op != opEnd; ++op) {
+                        // Check if the operand matches the pointer
+                            if (*op == valPhi) {
+                                
+                                LoadInst* loadInst = new LoadInst(valPhi->getType(),alloc[count], "myLoad", inst);
+
+                                // Set the operand to the loaded value
+                                inst->setOperand(opcnt, loadInst); 
+                                
                                 // Create a PtrToInt instruction to convert the pointer type to i32 type
                                 // Type *i32Type = Type::getInt32Ty(F->getContext());
                                 // Instruction *castInst = new PtrToIntInst(alloc[i], i32Type);
@@ -353,17 +360,19 @@ namespace
                                 // I.setOperand(i, alloc[i]);
                                 //(&I)->getParent()->getInstList().insertAfter((&I)->getIterator(), castInst);
                             }
+                            opcnt++;
                         }
+                        opcnt = 0;
                     }
                 }
             }
             // -------------------------------------------------------------------------------
-            // remove all the phi nodes
-            // for (map<int, std::vector<llvm::PHINode *>>::iterator iv = PhiNums.begin(); iv != PhiNums.end(); ++iv) { // number
-            //     for (std::vector<llvm::PHINode *>::iterator it = iv->second.begin(); it != iv->second.end(); ++it) { // *Phis
-            //         (*it)->eraseFromParent();
-            //     }
-            // }
+            //remove all the phi nodes
+            for (map<int, std::vector<llvm::PHINode *>>::iterator iv = PhiNums.begin(); iv != PhiNums.end(); ++iv) { // number
+                for (std::vector<llvm::PHINode *>::iterator it = iv->second.begin(); it != iv->second.end(); ++it) { // *Phis
+                    (*it)->eraseFromParent();
+                }
+            }
             //-------------------------------------------------------------------------------
             return true;
         }
