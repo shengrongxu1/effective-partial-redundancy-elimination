@@ -28,6 +28,9 @@
 #include "llvm/ADT/SetVector.h"
 #include "llvm/IR/PassManager.h"
 #include "llvm/IR/ValueHandle.h"
+#include "llvm/Transforms/Scalar/GVN.h"
+#include "llvm/Transforms/Scalar/DCE.h"
+#include "llvm/IR/LegacyPassManager.h"
 #include <deque>
 #include <unordered_map>
 #include <vector>
@@ -61,7 +64,8 @@ namespace
         {
         }
         std::unordered_map<llvm::Value *, int> rankMap;
-        void getAnalysisUsage(AnalysisUsage &AU) const override {
+        void getAnalysisUsage(AnalysisUsage &AU) const override
+        {
             AU.addRequired<BranchProbabilityInfoWrapperPass>();
             AU.addRequired<BlockFrequencyInfoWrapperPass>();
             AU.addRequired<LoopInfoWrapperPass>();
@@ -69,24 +73,24 @@ namespace
         }
         virtual bool runOnFunction(Function &F) override
         {
-            // // DominatorTree DT = DominatorTree(F);
-            // // PromoteMemToReg(F.getParent()->getDataLayout()).runOnFunction(F);
-            // assignRank(F);
-            // for (const auto &kv : rankMap)
-            // {
-            //     llvm::Value *key = kv.first;
-            //     int value = kv.second;
+            // // // DominatorTree DT = DominatorTree(F);
+            // // // PromoteMemToReg(F.getParent()->getDataLayout()).runOnFunction(F);
+            // // assignRank(F);
+            // // for (const auto &kv : rankMap)
+            // // {
+            // //     llvm::Value *key = kv.first;
+            // //     int value = kv.second;
 
-            //     // Assuming you have access to the LLVM context, you can use the following
-            //     // code to print the key (llvm::Value*) in a human-readable format
-            //     key->print(llvm::errs(), false); // Set the second parameter to true if you want to print the type as well
-            //     llvm::errs() << " -> " << value << "\n";
-            // }
-            // // -------------------------------------------------------------------------
+            // //     // Assuming you have access to the LLVM context, you can use the following
+            // //     // code to print the key (llvm::Value*) in a human-readable format
+            // //     key->print(llvm::errs(), false); // Set the second parameter to true if you want to print the type as well
+            // //     llvm::errs() << " -> " << value << "\n";
+            // // }
+            // // // -------------------------------------------------------------------------
             // // forwardProp testing
             // forwardProp(&F);
             // // -------------------------------------------------------------------------
-            // // Reassociation
+            // //Reassociation
             // Reassociate reassociatePass;
             // ReversePostOrderTraversal<Function *> RPOT(&F);
             // using OrderedSet = SetVector<AssertingVH<Instruction>, std::deque<AssertingVH<Instruction>>>;
@@ -103,6 +107,8 @@ namespace
             //     bool isValid() const { return Value1 && Value2; }
             // };
             // DenseMap<std::pair<Value *, Value *>, PairMapValue> PairMap[NumBinaryOps];
+            BlockFrequencyInfo &bfi = getAnalysis<BlockFrequencyInfoWrapperPass>().getBFI();
+            BranchProbabilityInfo &bpi = getAnalysis<BranchProbabilityInfoWrapperPass>().getBPI();
 
             // // Calculate the rank map for F.
             // reassociatePass.BuildRankMap(F, RPOT);
@@ -119,7 +125,7 @@ namespace
             // reassociatePass.BuildPairMap(RPOT);
             // DenseMap<BasicBlock *, unsigned> RankMap = reassociatePass.RankMap;
             // DenseMap<AssertingVH<Value>, unsigned> ValueRankMap = reassociatePass.ValueRankMap;
-            std::vector<BasicBlock *> freqPath = getFrequentPath(&F);
+            // std::vector<BasicBlock *> freqPath = getFrequentPath(&F, &bfi, &bpi);
             // reassociatePass.freqPath = freqPath;
             // // Traverse the same blocks that were analysed by BuildRankMap.
             // for (BasicBlock *BI : RPOT)
@@ -174,48 +180,70 @@ namespace
             // for (auto &Entry : PairMap)
             //     Entry.clear();
 
+            // applying GVN pass
+            // legacy::FunctionPassManager FPM(F.getParent());
+            
+            // FPM.add(createGVNPass());
+            // // Run the pass manager on the function
+            // FPM.run(F);
+
             // // print BBs
             // for (auto &BB : F)
             // {
             //     errs() << BB << "\n";
             // }
-            return false;
+            printDynInstcount(&F, &bfi, &bpi);
+            return true;
         }
 
-        // Assume that 'F' is a pointer to the function for which you want to construct
-        // the SSA form with phi nodes.
 
-        // This function takes a pointer to a function and converts it to SSA form with phi nodes.
+        void printDynInstcount(Function *F, BlockFrequencyInfo *bfi, BranchProbabilityInfo *bpi) 
+        {
 
-        // For LLVM 4.0
-        //  PreservedAnalyses run(Function &F, FunctionAnalysisManager &FAM) {
-
-        //     FunctionPassManager function_pass_manager;
-
-        //     function_pass_manager.addPass(ReassociatePass());
-        //     function_pass_manager.run(F, FAM);
-
-        //     return PreservedAnalyses::none();
-        // }
-        std::vector<BasicBlock *> getFrequentPath(Function *F)
+            errs() << F->getName();
+            errs() << ",";
+            uint64_t DynOpCount = 0;
+            // BlockFrequencyInfo &bfi = getAnalysis<BlockFrequencyInfoWrapperPass>().getBFI();
+            // BranchProbabilityInfo &bpi = getAnalysis<BranchProbabilityInfoWrapperPass>().getBPI();
+            for (Function::iterator FI = F->begin(); FI != F->end(); ++FI){
+                BasicBlock *BB = &*FI;
+                uint64_t instrCount = BB->size();
+                uint64_t blockCount = 0;
+                Optional<uint64_t> count = bfi->getBlockProfileCount(BB);
+                if (count.hasValue()) {
+                    blockCount = count.getValue();
+                    errs() << "block count : "<<blockCount << "\n";
+                    DynOpCount += blockCount * instrCount;
+                }
+                else {
+                    BlockFrequency Frequency = bfi->getBlockFreq(BB);
+                    errs() << "Freq : " << Frequency.getFrequency() << "\n";
+                    DynOpCount += Frequency.getFrequency() * instrCount;
+                }
+                
+            }
+            errs() << DynOpCount << "\n";
+        }
+        std::vector<BasicBlock *> getFrequentPath(Function *F, BlockFrequencyInfo *BFI, BranchProbabilityInfo *bpi)
         {
             // Find the entry block
             BasicBlock *entryBB = &F->getEntryBlock();
             std::vector<BasicBlock *> frequentPath;
             BasicBlock *BB = entryBB;
             LoopInfo &LI = getAnalysis<LoopInfoWrapperPass>().getLoopInfo();
-            BlockFrequencyInfo &BFI = getAnalysis<BlockFrequencyInfoWrapperPass>().getBFI();
-            BranchProbabilityInfo &bpi = getAnalysis<BranchProbabilityInfoWrapperPass>().getBPI();
+            // BlockFrequencyInfo &BFI = getAnalysis<BlockFrequencyInfoWrapperPass>().getBFI();
+            // BranchProbabilityInfo &bpi = getAnalysis<BranchProbabilityInfoWrapperPass>().getBPI();
             // if (LI.empty()) {
-                BasicBlock *next = nullptr;
-                for (succ_iterator PI = succ_begin(BB); PI != succ_end(BB); ++PI)
+            BasicBlock *next = nullptr;
+            for (succ_iterator PI = succ_begin(BB); PI != succ_end(BB); ++PI)
+            {
+                next = *PI;
+                BranchProbability currProInfo = bpi->getEdgeProbability(BB, next);
+                float currPro = (float)currProInfo.getNumerator() / (float)currProInfo.getDenominator();
+                if (currPro >= 0.5)
                 {
-                    next = *PI;
-                    BranchProbability currProInfo = bpi.getEdgeProbability(BB, next);
-                    float currPro = (float)currProInfo.getNumerator() / (float)currProInfo.getDenominator();
-                    if (currPro >= 0.5){
-                        frequentPath.push_back(next);
-                    }
+                    frequentPath.push_back(next);
+                }
             }
             // }else{
             //     for (Loop *L : LI){
@@ -223,14 +251,12 @@ namespace
             //     }
             // }
             return frequentPath;
-            
-            
-            
         }
-        std::vector<BasicBlock *> getFrequentLoop(Loop *L, std::vector<BasicBlock *> frequentPath){
+        std::vector<BasicBlock *> getFrequentLoop(Loop *L, std::vector<BasicBlock *> frequentPath)
+        {
             BranchProbabilityInfo &bpi = getAnalysis<BranchProbabilityInfoWrapperPass>().getBPI();
-            BasicBlock *header = L->getHeader();    
-            BasicBlock *BB = header; 
+            BasicBlock *header = L->getHeader();
+            BasicBlock *BB = header;
             while (true)
             {
                 BasicBlock *next = nullptr;

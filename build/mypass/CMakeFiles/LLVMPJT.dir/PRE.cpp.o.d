@@ -1,7 +1,7 @@
 mypass/CMakeFiles/LLVMPJT.dir/PRE.cpp.o: \
- /n/eecs583a/home/ireneyyh/Project/effective-partial-redundancy-elimination/mypass/PRE.cpp \
+ /n/eecs583a/home/shengrx/effective-partial-redundancy-elimination/mypass/PRE.cpp \
  /usr/include/stdc-predef.h \
- /n/eecs583a/home/ireneyyh/Project/effective-partial-redundancy-elimination/mypass/reassociation.h \
+ /n/eecs583a/home/shengrx/effective-partial-redundancy-elimination/mypass/reassociation.h \
  /usr/local/include/llvm/ADT/DenseMap.h \
  /usr/local/include/llvm/ADT/DenseMapInfo.h /usr/include/c++/11/cassert \
  /usr/include/x86_64-linux-gnu/c++/11/bits/c++config.h \
@@ -422,4 +422,7 @@ mypass/CMakeFiles/LLVMPJT.dir/PRE.cpp.o: \
  /usr/local/include/llvm/Transforms/Utils/SSAUpdater.h \
  /usr/local/include/llvm/Transforms/Utils/BasicBlockUtils.h \
  /usr/local/include/llvm/Transforms/Utils/Local.h \
- /usr/local/include/llvm/Transforms/Utils/SimplifyCFGOptions.h
+ /usr/local/include/llvm/Transforms/Utils/SimplifyCFGOptions.h \
+ /usr/local/include/llvm/Transforms/Scalar/GVN.h \
+ /usr/local/include/llvm/Transforms/Scalar/DCE.h \
+ /usr/local/include/llvm/IR/LegacyPassManager.h

@@ -31,7 +31,7 @@ fi
 if [ -f $PROF_DATA ]; then
   BITCODE=$BITCODE_DIR/$BENCH.profdata.bc
 else
-  BITCODE=$BITCODE_DIR/${1}_opt_dis.bc
+  BITCODE=$BITCODE_DIR/${1}_opt_dis_out_final.bc
 fi
 
 # Generate .dot files in tmp dir
