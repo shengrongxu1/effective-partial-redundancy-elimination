@@ -72,3 +72,4 @@ block count : 1
 8
 ```
 and now it comes to 8.
+When you run all the `sh xxx.sh` lines, stay in the `benchmarks` folder.
