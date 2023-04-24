@@ -53,10 +53,10 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /n/eecs583a/home/shengrx/effective-partial-redundancy-elimination
+CMAKE_SOURCE_DIR = /n/eecs583a/home/zhifanx/effective-partial-redundancy-elimination
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /n/eecs583a/home/shengrx/effective-partial-redundancy-elimination/build
+CMAKE_BINARY_DIR = /n/eecs583a/home/zhifanx/effective-partial-redundancy-elimination/build
 
 # Utility rule file for omp_gen.
 
@@ -78,6 +78,6 @@ CMakeFiles/omp_gen.dir/clean:
 .PHONY : CMakeFiles/omp_gen.dir/clean
 
 CMakeFiles/omp_gen.dir/depend:
-	cd /n/eecs583a/home/shengrx/effective-partial-redundancy-elimination/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /n/eecs583a/home/shengrx/effective-partial-redundancy-elimination /n/eecs583a/home/shengrx/effective-partial-redundancy-elimination /n/eecs583a/home/shengrx/effective-partial-redundancy-elimination/build /n/eecs583a/home/shengrx/effective-partial-redundancy-elimination/build /n/eecs583a/home/shengrx/effective-partial-redundancy-elimination/build/CMakeFiles/omp_gen.dir/DependInfo.cmake --color=$(COLOR)
+	cd /n/eecs583a/home/zhifanx/effective-partial-redundancy-elimination/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /n/eecs583a/home/zhifanx/effective-partial-redundancy-elimination /n/eecs583a/home/zhifanx/effective-partial-redundancy-elimination /n/eecs583a/home/zhifanx/effective-partial-redundancy-elimination/build /n/eecs583a/home/zhifanx/effective-partial-redundancy-elimination/build /n/eecs583a/home/zhifanx/effective-partial-redundancy-elimination/build/CMakeFiles/omp_gen.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/omp_gen.dir/depend
 

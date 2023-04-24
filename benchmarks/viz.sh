@@ -29,9 +29,9 @@ if [ $VIZ_TYPE = "cfg" ]; then
 fi
 
 if [ -f $PROF_DATA ]; then
-  BITCODE=$BITCODE_DIR/$BENCH.profdata.bc
+  BITCODE=$BITCODE_DIR/${1}_opt_dis_out_final.profdata.bc
 else
-  BITCODE=$BITCODE_DIR/${1}_opt_dis_out_final.bc
+  BITCODE=$BITCODE_DIR/${1}_opt_dis_out_final.profdata.bc
 fi
 
 # Generate .dot files in tmp dir
