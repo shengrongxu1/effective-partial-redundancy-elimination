@@ -2,7 +2,7 @@
 
 This is final project for EECS 583.
 
-For testing, take the example of a simple ifElse case (test_3.c). First, we need to comment out all the functions except these lines in `runOnFunction` of `PRE.cpp` in `mypass` folder **except** these following lines to just print out the dynamic operation count of the unoptimized code:
+For testing, take the example of a simple ifElse case (test_3.c). First, we need to comment out all the functions **except** these following lines in `runOnFunction` of `PRE.cpp` in `mypass` folder to just print out the dynamic operation count of the unoptimized code:
 ```
 BlockFrequencyInfo &bfi = getAnalysis<BlockFrequencyInfoWrapperPass>().getBFI();
 BranchProbabilityInfo &bpi = getAnalysis<BranchProbabilityInfoWrapperPass>().getBPI();
