@@ -73,3 +73,5 @@ block count : 1
 ```
 and now it comes to 8.
 When you run all the `sh xxx.sh` lines, stay in the `benchmarks` folder.
+
+Plus: please specify your own `PATH2LIB` in `run.sh` and `run_2.sh` before sh anything!
